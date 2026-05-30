@@ -15,6 +15,13 @@
             -moz-appearance: textfield;
         }
 
+        /* EVITAR ZOOM AUTOMÁTICO EN CELULARES */
+        @media screen and (max-width: 768px) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+        }
+
         @media print {
             body, html {
                 background: #fff !important;
@@ -440,7 +447,7 @@
                 const cat = inp.getAttribute("data-cat");
                 let valorPuro = parseFloat(inp.getAttribute("data-valor-real") || "0");
                 if (isNaN(valorPuro) || valorPuro <= 0) { valorPuro = 1; }
-                mapaPrecios[cat] = valorPuro;
+                mapPrecios[cat] = valorPuro;
             });
 
             pedidoListoParaEnviar = []; 
@@ -595,7 +602,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- CARGAR HISTORIAL DE PEDIDOS (SOLO CÓDIGO) ---
         async function cargarHistorialPedidos() {
             const tbody = document.getElementById("tabla-historial-body");
             document.getElementById("check-maestro").checked = false;
@@ -628,26 +634,22 @@
             }
         }
 
-        // --- COMPORTAMIENTO CHECKBOX MAESTRO ---
         function seleccionarTodoHistorial(source) {
             const checkboxes = document.querySelectorAll('.check-pedido');
             checkboxes.forEach(cb => cb.checked = source.checked);
             evaluarBotonEliminar();
         }
 
-        // --- COMPORTAMIENTO BOTÓN ELIMINAR ---
         function evaluarBotonEliminar() {
             const checkboxesSeleccionados = document.querySelectorAll('.check-pedido:checked');
             const btn = document.getElementById("btn-eliminar-bloque");
             btn.disabled = checkboxesSeleccionados.length === 0;
         }
 
-        // --- ENVIAR BAJA DE SELECCIONADOS EN BLOQUE ---
         async function eliminarPedidosSeleccionados() {
             const checkboxesSeleccionados = document.querySelectorAll('.check-pedido:checked');
             if(checkboxesSeleccionados.length === 0) return;
 
-            // Extraer la lista de IDs seleccionados
             let idsABorrar = [];
             checkboxesSeleccionados.forEach(cb => idsABorrar.push(cb.value));
             
@@ -662,7 +664,7 @@
             try {
                 const params = new URLSearchParams();
                 params.append("action", "eliminarPedido");
-                params.append("idPedido", idsABorrar.join(",")); // Enviamos la cadena unificada por comas
+                params.append("idPedido", idsABorrar.join(","));
 
                 await fetch(URL_API, {
                     method: "POST",
@@ -672,7 +674,7 @@
                 });
 
                 alert("Proceso de remoción finalizado con éxito.");
-                cargarHistorialPedidos(); // Recargar el listado
+                cargarHistorialPedidos();
             } catch (error) {
                 alert("Error de enlace al intentar eliminar los pedidos.");
                 console.error(error);
@@ -726,7 +728,7 @@
                 console.error(error);
                 tbodyWeb.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-600 font-mono uppercase text-[11px] font-bold">ERROR AL CALCULAR</td></tr>`;
             } finally {
-                btn.innerText = "CALCULAR_FALTANTES";
+                btn.innerText = "CALCULANDO_FALTANTES";
                 btn.disabled = false;
             }
         }
