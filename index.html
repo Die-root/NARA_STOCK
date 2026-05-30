@@ -6,6 +6,11 @@
     <title>NARA STUDIO — Control de Inventario</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
+        /* CONTROL DE PESTAÑAS Y MODALES PROTEGIDO (Evita bloqueos de Tailwind v4) */
+        .seccion-pestana.hidden, #modal-detalle.hidden {
+            display: none !important;
+        }
+        
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 
             -webkit-appearance: none; 
@@ -15,7 +20,7 @@
             -moz-appearance: textfield;
         }
 
-        /* EVITAR ZOOM AUTOMÁTICO EN CELULARES (Fuente mínima 16px al enfocar) */
+        /* EVITAR ZOOM AUTOMÁTICO EN CELULARES */
         @media screen and (max-width: 768px) {
             input, select, textarea {
                 font-size: 16px !important;
@@ -452,7 +457,12 @@
         }
 
         function toggleCategoria(idBloque) {
-            document.getElementById(idBloque).classList.toggle('hidden');
+            const el = document.getElementById(idBloque);
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
         }
 
         async function revisarResumenPedido() {
@@ -690,11 +700,15 @@
                 `;
 
                 datos.forEach(item => {
+                    const cat = item.Categoria || item.categoria || 'General';
+                    const desc = item.Descripcion || item.descripcion || 'Sin descripción';
+                    const cant = item.Cantidad || item.cantidad || item.CantidadPedida || 0;
+                    
                     htmlProductos += `
                         <tr class="hover:bg-[#f5f5f7] transition-colors">
-                            <td class="p-3 text-[#86868b] font-mono text-[10px] uppercase">${item.Categoria || item.categoria || 'General'}</td>
-                            <td class="p-3 font-semibold text-[#1d1d1f]">${item.Descripcion || item.descripcion || 'Sin descripción'}</td>
-                            <td class="p-3 text-center font-mono font-bold bg-[#f5f5f7]">${item.Cantidad || item.cantidad || item.CantidadPedida || 0}</td>
+                            <td class="p-3 text-[#86868b] font-mono text-[10px] uppercase">${cat}</td>
+                            <td class="p-3 font-semibold text-[#1d1d1f]">${desc}</td>
+                            <td class="p-3 text-center font-mono font-bold bg-[#f5f5f7]">${cant}</td>
                         </tr>
                     `;
                 });
