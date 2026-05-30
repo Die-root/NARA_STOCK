@@ -6,11 +6,6 @@
     <title>NARA STUDIO — Control de Inventario</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        /* CONTROL DE PESTAÑAS Y MODALES PROTEGIDO (Evita bloqueos de Tailwind v4) */
-        .seccion-pestana.hidden, #modal-detalle.hidden {
-            display: none !important;
-        }
-        
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 
             -webkit-appearance: none; 
@@ -20,8 +15,8 @@
             -moz-appearance: textfield;
         }
 
-        /* EVITAR ZOOM AUTOMÁTICO EN CELULARES */
-        @media screen and (max-width: 768px) {
+        /* Evita el zoom automático en celulares al enfocar inputs, select y textarea */
+        @media screen and (max-width: 767px) {
             input, select, textarea {
                 font-size: 16px !important;
             }
@@ -38,8 +33,7 @@
             .flex.flex-wrap.gap-1.border-b-2,
             .no-print,
             button,
-            .panel-botones-accion,
-            #modal-detalle {
+            .panel-botones-accion {
                 display: none !important;
             }
             body:has(#btn-tab-inventario.bg-stone-950) #tab-pedido,
@@ -246,11 +240,10 @@
                                     <input type="checkbox" id="check-maestro" onclick="seleccionarTodoHistorial(this)" class="w-4 h-4 accent-stone-900 cursor-pointer">
                                 </th>
                                 <th class="p-4 font-normal">Código de Pedido Registrado</th>
-                                <th class="p-4 font-normal text-right w-32">Acción</th>
                             </tr>
                         </thead>
                         <tbody id="tabla-historial-body" class="divide-y divide-[#e5e5e5] bg-white font-sans text-[#1d1d1f]">
-                            <tr><td colspan="3" class="p-6 text-center text-[#86868b] font-mono uppercase text-[11px]">Haga clic en Actualizar Lista para ver las órdenes.</td></tr>
+                            <tr><td colspan="2" class="p-6 text-center text-[#86868b] font-mono uppercase text-[11px]">Haga clic en Actualizar Lista para ver las órdenes.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -296,21 +289,6 @@
             </div>
         </div>
 
-    </div>
-
-    <div id="modal-detalle" class="hidden fixed inset-0 bg-[#1d1d1f]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-        <div class="bg-white w-full max-w-2xl border border-[#1d1d1f] shadow-2xl p-6 md:p-8 space-y-6 overflow-y-auto max-h-[90vh]">
-            <div class="flex justify-between items-start border-b border-[#e5e5e5] pb-4">
-                <div>
-                    <h3 id="modal-titulo" class="text-sm font-mono tracking-widest uppercase text-[#1d1d1f] font-bold">DETALLE DE ORDEN</h3>
-                    <p class="text-[9px] text-[#86868b] font-mono uppercase mt-1 tracking-wider">Historial de registros NARA STUDIO</p>
-                </div>
-                <button onclick="cerrarModal()" class="text-xs font-mono font-bold tracking-widest bg-[#f5f5f7] hover:bg-[#e8e8ed] border border-[#d2d2d7] px-3 py-1 cursor-pointer transition uppercase">[ X_CERRAR ]</button>
-            </div>
-            <div id="modal-contenido" class="space-y-4 font-sans text-xs">
-                <p class="text-center font-mono text-[#86868b] uppercase py-4">Buscando productos en la base de datos...</p>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -457,12 +435,7 @@
         }
 
         function toggleCategoria(idBloque) {
-            const el = document.getElementById(idBloque);
-            if (el.classList.contains('hidden')) {
-                el.classList.remove('hidden');
-            } else {
-                el.classList.add('hidden');
-            }
+            document.getElementById(idBloque).classList.toggle('hidden');
         }
 
         async function revisarResumenPedido() {
@@ -474,7 +447,7 @@
                 const cat = inp.getAttribute("data-cat");
                 let valorPuro = parseFloat(inp.getAttribute("data-valor-real") || "0");
                 if (isNaN(valorPuro) || valorPuro <= 0) { valorPuro = 1; }
-                mapPrecios[cat] = valorPuro;
+                mapaPrecios[cat] = valorPuro;
             });
 
             pedidoListoParaEnviar = []; 
@@ -629,12 +602,12 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- CARGAR HISTORIAL DE PEDIDOS ---
+        // --- CARGAR HISTORIAL DE PEDIDOS (SOLO CÓDIGO) ---
         async function cargarHistorialPedidos() {
             const tbody = document.getElementById("tabla-historial-body");
             document.getElementById("check-maestro").checked = false;
             document.getElementById("btn-eliminar-bloque").disabled = true;
-            tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-[#86868b] font-mono uppercase text-[11px]">Buscando pedidos activos...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="2" class="p-6 text-center text-[#86868b] font-mono uppercase text-[11px]">Buscando pedidos activos...</td></tr>`;
             
             try {
                 const res = await fetch(`${URL_API}?action=listarPedidos`);
@@ -642,7 +615,7 @@
                 
                 tbody.innerHTML = "";
                 if(pedidos.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-stone-400 font-mono uppercase text-[11px]">// No hay pedidos activos en el sistema</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="2" class="p-6 text-center text-stone-400 font-mono uppercase text-[11px]">// No hay pedidos activos en el sistema</td></tr>`;
                     return;
                 }
 
@@ -653,100 +626,35 @@
                                 <input type="checkbox" value="${p.idPedido}" onclick="evaluarBotonEliminar()" class="check-pedido w-4 h-4 accent-stone-900 cursor-pointer">
                             </td>
                             <td class="p-4 font-mono font-bold text-[#1d1d1f]">${p.idPedido}</td>
-                            <td class="p-4 text-right">
-                                <button onclick="verDetallePedido('${p.idPedido}')" class="text-[10px] font-mono font-bold tracking-widest bg-[#1d1d1f] text-white hover:bg-[#2d2d2f] px-3 py-1.5 transition rounded-none cursor-pointer uppercase">
-                                    [ VER_DETALLE ]
-                                </button>
-                            </td>
                         </tr>
                     `;
                 });
             } catch (error) {
                 console.error(error);
-                tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-red-600 font-mono uppercase text-[11px] font-bold">ERROR_AL_CARGAR_HISTORIAL</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="2" class="p-6 text-center text-red-600 font-mono uppercase text-[11px] font-bold">ERROR_AL_CARGAR_HISTORIAL</td></tr>`;
             }
         }
 
-        // --- CONSULTA DEL MODAL DETALLE DE UN PEDIDO ---
-        async function verDetallePedido(idPedido) {
-            const modal = document.getElementById("modal-detalle");
-            const titulo = document.getElementById("modal-titulo");
-            const contenido = document.getElementById("modal-contenido");
-
-            titulo.innerText = `DETALLE DE PEDIDO // ${idPedido}`;
-            contenido.innerHTML = `<p class="text-center font-mono text-[#86868b] uppercase py-4">Consultando base de datos en Google Sheets...</p>`;
-            modal.classList.remove("hidden");
-
-            try {
-                const res = await fetch(`${URL_API}?action=getDetallePedido&idPedido=${idPedido}`);
-                const datos = await res.json();
-
-                if (!datos || datos.length === 0) {
-                    contenido.innerHTML = `<p class="text-center font-mono text-[#e35a1c] font-bold uppercase py-2">No se encontraron productos dentro de este pedido o la hoja está vacía.</p>`;
-                    return;
-                }
-
-                let htmlProductos = `
-                    <div class="overflow-x-auto border border-[#e5e5e5]">
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="bg-[#f5f5f7] text-[#424245] font-mono text-[9px] uppercase tracking-widest font-bold border-b border-[#e5e5e5]">
-                                    <th class="p-3">Colección</th>
-                                    <th class="p-3">Prenda / Descripción</th>
-                                    <th class="p-3 text-center">Cant</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-[#e5e5e5] bg-white">
-                `;
-
-                datos.forEach(item => {
-                    const cat = item.Categoria || item.categoria || 'General';
-                    const desc = item.Descripcion || item.descripcion || 'Sin descripción';
-                    const cant = item.Cantidad || item.cantidad || item.CantidadPedida || 0;
-                    
-                    htmlProductos += `
-                        <tr class="hover:bg-[#f5f5f7] transition-colors">
-                            <td class="p-3 text-[#86868b] font-mono text-[10px] uppercase">${cat}</td>
-                            <td class="p-3 font-semibold text-[#1d1d1f]">${desc}</td>
-                            <td class="p-3 text-center font-mono font-bold bg-[#f5f5f7]">${cant}</td>
-                        </tr>
-                    `;
-                });
-
-                htmlProductos += `
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-
-                contenido.innerHTML = htmlProductos;
-
-            } catch (error) {
-                console.error(error);
-                contenido.innerHTML = `<p class="text-center font-mono text-[#e35a1c] font-bold uppercase py-2">ERROR_DE_CONEXIÓN: No se pudo enlazar la lectura con la nube.</p>`;
-            }
-        }
-
-        function cerrarModal() {
-            document.getElementById("modal-detalle").classList.add("hidden");
-        }
-
+        // --- COMPORTAMIENTO CHECKBOX MAESTRO ---
         function seleccionarTodoHistorial(source) {
             const checkboxes = document.querySelectorAll('.check-pedido');
             checkboxes.forEach(cb => cb.checked = source.checked);
             evaluarBotonEliminar();
         }
 
+        // --- COMPORTAMIENTO BOTÓN ELIMINAR ---
         function evaluarBotonEliminar() {
             const checkboxesSeleccionados = document.querySelectorAll('.check-pedido:checked');
             const btn = document.getElementById("btn-eliminar-bloque");
             btn.disabled = checkboxesSeleccionados.length === 0;
         }
 
+        // --- ENVIAR BAJA DE SELECCIONADOS EN BLOQUE ---
         async function eliminarPedidosSeleccionados() {
             const checkboxesSeleccionados = document.querySelectorAll('.check-pedido:checked');
             if(checkboxesSeleccionados.length === 0) return;
 
+            // Extraer la lista de IDs seleccionados
             let idsABorrar = [];
             checkboxesSeleccionados.forEach(cb => idsABorrar.push(cb.value));
             
@@ -761,7 +669,7 @@
             try {
                 const params = new URLSearchParams();
                 params.append("action", "eliminarPedido");
-                params.append("idPedido", idsABorrar.join(","));
+                params.append("idPedido", idsABorrar.join(",")); // Enviamos la cadena unificada por comas
 
                 await fetch(URL_API, {
                     method: "POST",
@@ -771,7 +679,7 @@
                 });
 
                 alert("Proceso de remoción finalizado con éxito.");
-                cargarHistorialPedidos();
+                cargarHistorialPedidos(); // Recargar el listado
             } catch (error) {
                 alert("Error de enlace al intentar eliminar los pedidos.");
                 console.error(error);
