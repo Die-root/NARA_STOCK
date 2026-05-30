@@ -15,7 +15,7 @@
             -moz-appearance: textfield;
         }
 
-        /* EVITAR ZOOM AUTOMÁTICO EN CELULARES */
+        /* EVITAR ZOOM AUTOMÁTICO EN CELULARES (Fuente mínima 16px al enfocar) */
         @media screen and (max-width: 768px) {
             input, select, textarea {
                 font-size: 16px !important;
@@ -293,7 +293,7 @@
 
     </div>
 
-    <div id="modal-detalle" class="hidden fixed inset-0 bg-[#1d1d1f]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+    <div id="modal-detalle" class="hidden fixed inset-0 bg-[#1d1d1f]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
         <div class="bg-white w-full max-w-2xl border border-[#1d1d1f] shadow-2xl p-6 md:p-8 space-y-6 overflow-y-auto max-h-[90vh]">
             <div class="flex justify-between items-start border-b border-[#e5e5e5] pb-4">
                 <div>
@@ -657,7 +657,7 @@
             }
         }
 
-        // --- INTERMITENCIA Y CONSULTA DEL MODAL DETALLE DE UN PEDIDO ---
+        // --- CONSULTA DEL MODAL DETALLE DE UN PEDIDO ---
         async function verDetallePedido(idPedido) {
             const modal = document.getElementById("modal-detalle");
             const titulo = document.getElementById("modal-titulo");
@@ -668,7 +668,6 @@
             modal.classList.remove("hidden");
 
             try {
-                // Consultamos al Web App de Apps Script enviando el ID específico de la pestaña
                 const res = await fetch(`${URL_API}?action=getDetallePedido&idPedido=${idPedido}`);
                 const datos = await res.json();
 
@@ -693,9 +692,9 @@
                 datos.forEach(item => {
                     htmlProductos += `
                         <tr class="hover:bg-[#f5f5f7] transition-colors">
-                            <td class="p-3 text-[#86868b] font-mono text-[10px] uppercase">${item.Categoria || 'General'}</td>
-                            <td class="p-3 font-semibold text-[#1d1d1f]">${item.Descripcion || 'Sin descripción'}</td>
-                            <td class="p-3 text-center font-mono font-bold bg-[#f5f5f7]">${item.Cantidad || item.CantidadPedida || 0}</td>
+                            <td class="p-3 text-[#86868b] font-mono text-[10px] uppercase">${item.Categoria || item.categoria || 'General'}</td>
+                            <td class="p-3 font-semibold text-[#1d1d1f]">${item.Descripcion || item.descripcion || 'Sin descripción'}</td>
+                            <td class="p-3 text-center font-mono font-bold bg-[#f5f5f7]">${item.Cantidad || item.cantidad || item.CantidadPedida || 0}</td>
                         </tr>
                     `;
                 });
